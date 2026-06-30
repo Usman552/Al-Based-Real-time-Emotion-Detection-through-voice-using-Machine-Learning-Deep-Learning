@@ -326,6 +326,7 @@ elif page == "ℹ️ About Project":
 # ════════════════════════════════
 # PAGE 5 — Session History
 # ════════════════════════════════
+
 elif page == "📋 Session History":
     st.header("Session History")
 
@@ -343,3 +344,5 @@ elif page == "📋 Session History":
             st.session_state.history = []
             st.success("History cleared!")
             st.rerun()
+            
+            

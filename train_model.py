@@ -153,6 +153,7 @@ y = np.array(y_aug)
 print(f"Total samples after augmentation: {len(X)}")
 
 # ─── Label Encoding ──────────────────────────────────────
+
 le = LabelEncoder()
 y_encoded = le.fit_transform(y)
 print(f"\nEmotions found: {le.classes_}")
@@ -168,6 +169,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 print(f"\nTrain: {len(X_train)} | Test: {len(X_test)}")
 
 # ─── Model ───────────────────────────────────────────────
+
 input_dim = X.shape[1]
 model = keras.Sequential([
     keras.layers.Dense(512, activation='relu', input_shape=(input_dim,)),
