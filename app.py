@@ -33,25 +33,40 @@ def load_scaler():
 def extract_features(file_path):
     try:
         audio, sr = librosa.load(file_path, sr=22050)
+        if len(audio) == 0:
+            st.error("Empty audio file"); return None, None, None
 
-        mfcc = librosa.feature.mfcc(y=audio, sr=sr, n_mfcc=40)
-        mfcc_mean = np.mean(mfcc.T, axis=0)
-        mfcc_std  = np.std(mfcc.T, axis=0)
+        audio_p, _ = librosa.effects.trim(audio, top_db=25)
+        if len(audio_p) < sr // 2:
+            audio_p = np.pad(audio_p, (0, sr // 2 - len(audio_p)))
+        audio_p = librosa.util.normalize(audio_p)
 
-        chroma = librosa.feature.chroma_stft(y=audio, sr=sr)
-        chroma_mean = np.mean(chroma.T, axis=0)
+        mfcc = librosa.feature.mfcc(y=audio_p, sr=sr, n_mfcc=40)
+        d1   = librosa.feature.delta(mfcc)
+        d2   = librosa.feature.delta(mfcc, order=2)
+        def ms(x): return np.concatenate([x.mean(axis=1), x.std(axis=1)])
 
-        mel = librosa.feature.melspectrogram(y=audio, sr=sr)
-        mel_mean = np.mean(mel.T, axis=0)[:20]
+        mfcc_f   = ms(mfcc)                                                          # 80
+        d1_f     = ms(d1)                                                            # 80
+        d2_f     = ms(d2)                                                            # 80
+        chroma   = librosa.feature.chroma_stft(y=audio_p, sr=sr).mean(axis=1)        # 12
+        mel      = librosa.feature.melspectrogram(y=audio_p, sr=sr).mean(axis=1)[:20]# 20
+        contrast = librosa.feature.spectral_contrast(y=audio_p, sr=sr).mean(axis=1)  # 7
+        zcr = np.array([librosa.feature.zero_crossing_rate(y=audio_p).mean()])       # 1
+        rms = np.array([librosa.feature.rms(y=audio_p).mean()])                      # 1
+        cent = librosa.feature.spectral_centroid(y=audio_p, sr=sr).mean()
+        bw   = librosa.feature.spectral_bandwidth(y=audio_p, sr=sr).mean()
+        roll = librosa.feature.spectral_rolloff(y=audio_p, sr=sr).mean()
+        spec = np.array([cent, bw, roll])                                            # 3
 
-        zcr = np.mean(librosa.feature.zero_crossing_rate(y=audio))
-        rms = np.mean(librosa.feature.rms(y=audio))
-
-        features = np.concatenate([mfcc_mean, mfcc_std, chroma_mean, mel_mean, [zcr, rms]])
+        features = np.concatenate([mfcc_f, d1_f, d2_f, chroma, mel, contrast,
+                                   zcr, rms, spec])                                  # 284
         return features, audio, sr
     except Exception as e:
         st.error(f"Feature extraction error: {e}")
         return None, None, None
+
+
 
 # ── Prediction ──
 def predict_emotion(file_path, model, le):
