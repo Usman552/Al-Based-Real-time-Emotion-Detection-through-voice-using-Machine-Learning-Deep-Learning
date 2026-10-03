@@ -1,0 +1,12 @@
+{
+  "cpu": "Intel(R) Core(TM) i5-8350U CPU @ 1.70GHz",
+  "logical_cores": 8,
+  "ram_gb": 15.9,
+  "gpu": "none (CPU only)",
+  "os": "Windows-10-10.0.26200-SP0",
+  "mean_clip_s": 2.74893560090703,
+  "peak_rss_mb": 2944.6640625,
+  "n_clips": 200,
+  "torch": "2.12.0+cpu",
+  "note": "batch size 1, single process, consumer laptop CPU"
+}

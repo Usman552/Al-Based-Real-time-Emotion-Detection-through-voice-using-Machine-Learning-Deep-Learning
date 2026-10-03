@@ -20,22 +20,22 @@ TESS Toronto emotional speech set data/
 docs/
 files (2)/
 paper/
-revision/paper/
 app_extract_features_284.py
 
 # Caches, logs and generated data
 cache/
-cache_revision/
+cache_experiments/
 ensemble/
 feedback/
 *.log
-revision/PROGRESS.txt
-revision/status.py
-revision/run_all*.py
-revision/run_large_parallel.py
+experiments/_local/
 
 # Editor / OS
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Earlier single-split outputs of train_model.py / auto_train.py (paper results are in results/experiments)
+results/*
+!results/experiments/

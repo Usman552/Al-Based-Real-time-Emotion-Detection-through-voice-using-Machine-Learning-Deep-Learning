@@ -1,0 +1,4 @@
+pipeline,load_ms,features_ms,encoder_ms,classifier_ms,total_ms,p95_total_ms,encoder_params_M,classifier_params_M,rtf,throughput_clips_s,model_size_MB_fp32
+Handcrafted 284-D + DNN,49.64,37.26,0.0,10.45,97.35,68.81,0.0,0.32,0.04,10.27,1.29
+WavLM-Base+ + 284-D fusion DNN,49.64,37.26,322.31,24.23,433.44,644.9,94.38,1.11,0.16,2.31,381.96
+WavLM-Large + 284-D fusion DNN,49.64,37.26,932.65,26.97,1046.52,1571.46,315.45,1.37,0.38,0.96,1267.29
