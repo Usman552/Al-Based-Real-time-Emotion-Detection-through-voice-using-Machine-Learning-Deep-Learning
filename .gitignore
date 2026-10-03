@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Datasets (download separately, see README)
+CREMAD/
+RAVDESS/
+SAVEE/
+TESS Toronto emotional speech set data/
+
+# Documents, reports and archives
+*.docx
+*.doc
+*.pdf
+*.zip
+docs/
+files (2)/
+paper/
+revision/paper/
+app_extract_features_284.py
+
+# Caches, logs and generated data
+cache/
+cache_revision/
+ensemble/
+feedback/
+*.log
+revision/PROGRESS.txt
+revision/status.py
+revision/run_all*.py
+revision/run_large_parallel.py
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

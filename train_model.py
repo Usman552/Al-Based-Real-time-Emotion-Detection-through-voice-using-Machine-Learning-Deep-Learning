@@ -1,27 +1,17 @@
 """
-============================================================================
-train_model.py  — IMPROVED (quick-wins version)
+Trains the handcrafted-feature model used by app.py.
 
-Improvements over the 117-feature version:
-  1. FEATURES (now 284): MFCC + delta + delta-delta (each mean+std),
-     chroma, mel, spectral-contrast, ZCR, RMS, and 3 spectral shape features.
-     -> delta / delta-delta capture how the voice CHANGES over time,
-        which the old mean/std-only vector threw away.
-  2. AUGMENTATION on the WAVEFORM (training set only): additive noise,
-     pitch-shift, and time-stretch -> better generalization on hard corpora.
-  3. FOCAL LOSS with class-balanced alpha -> lifts weak classes (disgust/fear).
+Features (284-D): MFCC, delta and delta-delta (mean + std of each), chroma,
+mel energies, spectral contrast, ZCR, RMS and three spectral-shape descriptors.
+Training clips are augmented on the waveform (noise, pitch shift, time
+stretch) and the network is trained with a class-balanced focal loss.
 
-Core result files are saved BEFORE the heavy CV/ablation steps, so even if
-those are slow or interrupted, the figures data is safe.
+Outputs: emotion_model.h5, scaler.pkl, label_encoder.pkl and CSV/PNG files in
+results/. The model is saved with a custom loss, so load it with
+load_model("emotion_model.h5", compile=False).
 
-IMPORTANT — after this runs you MUST also:
-  * replace extract_features in app.py with the 284-feature version I gave you
-  * change app.py's load line to:  load_model("emotion_model.h5", compile=False)
-    (because the model is compiled with a custom focal loss)
-
-NOTE: augmentation reloads each training clip 3 extra times, so this run is
-slower than before. If it's too slow, remove entries from AUGS below.
-============================================================================
+Note: this script uses a single random 80/20 split. The speaker-independent
+evaluation reported in the paper is in experiments/run_experiments.py.
 """
 import os, time, pickle, numpy as np, pandas as pd
 import librosa
@@ -35,16 +25,25 @@ import matplotlib.pyplot as plt, seaborn as sns
 
 SEED = 42
 np.random.seed(SEED); tf.random.set_seed(SEED)
-OUTDIR = "results"; os.makedirs(OUTDIR, exist_ok=True)
+
+# Resolve every path relative to this script so the run works from any working
+# directory and on any machine that has the datasets sitting next to it.
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTDIR = os.path.join(BASE_DIR, "results"); os.makedirs(OUTDIR, exist_ok=True)
 
 AUGS = ["noise", "pitch", "stretch"]   # trim this list if the run is too slow
 RUN_CV = True
 RUN_ABLATION = True
 
-TESS_PATH    = r"D:\web\FYP\Emotion_Recognition\TESS Toronto emotional speech set data"
-RAVDESS_PATH = r"D:\web\FYP\Emotion_Recognition\RAVDESS"
-CREMAD_PATH  = r"D:\web\FYP\Emotion_Recognition\CREMAD\AudioWAV"
-SAVEE_PATH   = r"D:\web\FYP\Emotion_Recognition\SAVEE\AudioData"
+TESS_PATH    = os.path.join(BASE_DIR, "TESS Toronto emotional speech set data")
+RAVDESS_PATH = os.path.join(BASE_DIR, "RAVDESS")
+CREMAD_PATH  = os.path.join(BASE_DIR, "CREMAD", "AudioWAV")
+SAVEE_PATH   = os.path.join(BASE_DIR, "SAVEE", "AudioData")
+
+for _name, _p in [("TESS", TESS_PATH), ("RAVDESS", RAVDESS_PATH),
+                  ("CREMA-D", CREMAD_PATH), ("SAVEE", SAVEE_PATH)]:
+    if not os.path.isdir(_p):
+        raise SystemExit(f"Dataset folder for {_name} not found: {_p}")
 
 # ─── Feature extraction (284-dim) ────────────────────────
 def features_from_audio(audio, sr=22050):
@@ -195,9 +194,9 @@ history = model.fit(X_train_s, y_train, epochs=120, batch_size=32,
 train_time = time.time() - t0
 
 # ─── Save model + preprocessing ──────────────────────────
-model.save("emotion_model.h5")
-pickle.dump(le, open("label_encoder.pkl", "wb"))
-pickle.dump(scaler, open("scaler.pkl", "wb"))
+model.save(os.path.join(BASE_DIR, "emotion_model.h5"))
+pickle.dump(le, open(os.path.join(BASE_DIR, "label_encoder.pkl"), "wb"))
+pickle.dump(scaler, open(os.path.join(BASE_DIR, "scaler.pkl"), "wb"))
 
 # ─── CORE result files (saved first) ─────────────────────
 pd.DataFrame({"epoch": np.arange(1, len(history.history['accuracy'])+1),
@@ -282,4 +281,4 @@ plt.tight_layout();plt.savefig(f"{OUTDIR}/training_curves.png",dpi=150);plt.clos
 plt.figure(figsize=(8,6));sns.heatmap(confusion_matrix(y_test,y_pred),annot=True,fmt='d',cmap='Blues',xticklabels=CLASSES,yticklabels=CLASSES)
 plt.title(f'Confusion Matrix — {acc*100:.1f}%');plt.ylabel('Actual');plt.xlabel('Predicted');plt.tight_layout();plt.savefig(f"{OUTDIR}/confusion_matrix.png",dpi=150);plt.close()
 
-print("\nDONE. Send me the results/ folder.")
+print("\nDone. Results written to", OUTDIR)
