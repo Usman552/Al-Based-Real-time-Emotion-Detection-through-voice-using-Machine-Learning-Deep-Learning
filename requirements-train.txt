@@ -1,0 +1,6 @@
+# Extra packages for retraining and evaluation (train_model.py, auto_train.py,
+# train_ensemble.py). Install on top of requirements.txt:
+#
+#   pip install -r requirements.txt -r requirements-train.txt
+pandas
+seaborn
